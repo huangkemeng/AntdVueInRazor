@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - VueInRazor</title>
+    <style>
+        #app {
+            font-family: Avenir, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 60px;
+        }
+
+        h3 {
+            margin: 40px 0 0;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        a {
+            color: #42b983;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        @RenderBody()
+    </div>
+    <script type="importmap">
+        {
+          "imports": {
+            "vue": "https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.10/vue.esm-browser.prod.min.js",
+            "antd": "https://cdnjs.cloudflare.com/ajax/libs/ant-design-vue/4.0.7/antd.esm.min.js",
+            "axios":"https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/esm/axios.min.js"
+          }
+        }
+    </script>
+    <script>
+        const comps = []
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+    @Html.PageScripts()
+    <script type="module">
+        import { createApp } from 'vue'
+        import * as antd from 'antd'
+        const app = createApp({});
+        app.use(antd)
+        comps.forEach(c => {
+            app.component(c.name, c.comp);
+        });
+        app.mount('#app')
+    </script>
+</body>
+</html>

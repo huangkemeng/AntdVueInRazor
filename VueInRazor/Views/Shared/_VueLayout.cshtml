@@ -1,0 +1,36 @@
+﻿@model dynamic
+@{
+    var id = Guid.NewGuid().ToString().Replace("-", "");
+    var componentName = $"vue_{id}";
+    var vueProps = "";
+    if (Model is not null)
+    {
+        vueProps = Model.ToString();
+    }
+}
+<@componentName @Html.Raw(vueProps)></@componentName>
+
+@using (Html.BeginScripts())
+{
+    <div id="section_@id">
+        @await RenderSectionAsync("vue", false)
+    </div>
+    <script type="module">
+        import { defineComponent } from 'vue'
+        let comp = defineComponent({ name: '@componentName', template: `@RenderBody()` });
+        const scriptDom = document.querySelector("#section_@id").querySelector('script')
+        if (scriptDom) {
+            const innerText = scriptDom.innerText;
+            if (innerText) {
+                var newComp = await import(URL.createObjectURL(new Blob([innerText], { type: 'application/javascript' })));
+                if (newComp && newComp.default) {
+                    comp = defineComponent({ ...newComp.default, name: '@componentName', template: `@RenderBody()` });
+                }
+            }
+        }
+        comps.push({
+            name: comp.name,
+            comp: comp
+        })
+    </script>
+}
