@@ -36,8 +36,8 @@
         <a-alert :message="'count:'+ count" type="info" />
     </p>
 </div>
-
-@section vue {
+@using (Html.DefineScripts("vue"))
+{
     <script type="module">
         import { ref } from 'vue'
         export default {

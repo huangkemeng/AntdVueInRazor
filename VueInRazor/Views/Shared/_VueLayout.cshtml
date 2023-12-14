@@ -1,36 +1,53 @@
 ﻿@model dynamic
+@using System.Xml;
+@using System.IO;
+@using Microsoft.AspNetCore.Hosting;
+@inject IWebHostEnvironment hostingEnvironment
 @{
     var id = Guid.NewGuid().ToString().Replace("-", "");
     var componentName = $"vue_{id}";
+    var fileName = ViewContext.View.Path.Replace(".cshtml", "").Replace("/", "_");
+    string wwwrootPath = hostingEnvironment.WebRootPath;
     var vueProps = "";
     if (Model is not null)
     {
         vueProps = Model.ToString();
     }
+    var bodyContent = RenderBody().GetString();
+    var hasBody = !string.IsNullOrWhiteSpace(bodyContent);
+    if (hasBody)
+    {
+        var path = System.IO.Path.Combine(wwwrootPath, $"js/dist/dom{fileName}.html");
+        using (var writer = System.IO.File.CreateText(path))
+        {
+            writer.Write(bodyContent);
+        }
+    }
+    var scriptDom = Html.RenderScripts("vue").Value;
+    var hasScript = !string.IsNullOrWhiteSpace(scriptDom);
+    if (hasScript)
+    {
+        var path = System.IO.Path.Combine(wwwrootPath, $"js/dist/script{fileName}.html");
+        using (var writer = System.IO.File.CreateText(path))
+        {
+            writer.Write(scriptDom);
+        }
+    }
 }
 <@componentName @Html.Raw(vueProps)></@componentName>
 
-@using (Html.BeginScripts())
+@using (Html.DefineScripts("DefineVueComponent", false))
 {
-    <div id="section_@id">
-        @await RenderSectionAsync("vue", false)
-    </div>
     <script type="module">
-        import { defineComponent } from 'vue'
-        let comp = defineComponent({ name: '@componentName', template: `@RenderBody()` });
-        const scriptDom = document.querySelector("#section_@id").querySelector('script')
-        if (scriptDom) {
-            const innerText = scriptDom.innerText;
-            if (innerText) {
-                var newComp = await import(URL.createObjectURL(new Blob([innerText], { type: 'application/javascript' })));
-                if (newComp && newComp.default) {
-                    comp = defineComponent({ ...newComp.default, name: '@componentName', template: `@RenderBody()` });
-                }
-            }
-        }
-        comps.push({
-            name: comp.name,
-            comp: comp
-        })
+        comps.push(async (axios, defineComponent) => {
+            return await addComponent(
+                axios,
+                defineComponent,
+                '@componentName',
+                '@hasBody',
+                '@hasScript',
+                '@Url.Content($"~/js/dist/dom{fileName}.html")',
+                '@Url.Content($"~/js/dist/script{fileName}.html")')
+        });
     </script>
 }
