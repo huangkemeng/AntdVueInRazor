@@ -8,6 +8,7 @@ namespace VueInRazor
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddHostedService<CreateDistDirectoryWorker>();
 
             var app = builder.Build();
 
